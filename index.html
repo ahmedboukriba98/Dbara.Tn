@@ -1,0 +1,482 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ThinkCook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: sticky freezer panel beside ranked dishes (stacked on phones), Tunisian Arabic first, RTL.
+   Palette: Sidi Bou Said blue melting into soft lavender and blush, harissa red for emphasis, olive green for "ready". */
+:root {
+  --bg: #EEF4FB;
+  --bg-grad: linear-gradient(160deg, #E4EFFB 0%, #EFEDFA 52%, #FCEDE8 100%);
+  --surface: #FFFFFF;
+  --surface-2: #F3F7FC;
+  --fg: #12284A;
+  --muted: #5B6D87;
+  --line: #DCE5F0;
+  --accent: #2459AB;
+  --accent-grad: linear-gradient(135deg, #2B5FAE 0%, #3F9AD6 100%);
+  --accent-fg: #FFFFFF;
+  --accent-soft: #E2EDFA;
+  --hot: #BE3F29;
+  --hot-soft: #FCEAE5;
+  --ok: #2C7549;
+  --ok-soft: #E2F3E9;
+  --shadow: rgba(36, 80, 150, 0.20);
+  --font-ar: "Cairo", "Segoe UI", "Geeza Pro", system-ui, sans-serif;
+  --font-en: "DM Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A1424;
+    --bg-grad: linear-gradient(160deg, #0B1830 0%, #141B38 55%, #231A33 100%);
+    --surface: #122039; --surface-2: #1A2B4A; --fg: #E8EEF8; --muted: #98A9C3; --line: #263A5C;
+    --accent: #7FB2F0; --accent-grad: linear-gradient(135deg, #3A76C6 0%, #4DA3DC 100%); --accent-fg: #FFFFFF; --accent-soft: #1D3558;
+    --hot: #F4806A; --hot-soft: #3B2323; --ok: #8FD0A2; --ok-soft: #1C3527; --shadow: rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A1424;
+  --bg-grad: linear-gradient(160deg, #0B1830 0%, #141B38 55%, #231A33 100%);
+  --surface: #122039; --surface-2: #1A2B4A; --fg: #E8EEF8; --muted: #98A9C3; --line: #263A5C;
+  --accent: #7FB2F0; --accent-grad: linear-gradient(135deg, #3A76C6 0%, #4DA3DC 100%); --accent-fg: #FFFFFF; --accent-soft: #1D3558;
+  --hot: #F4806A; --hot-soft: #3B2323; --ok: #8FD0A2; --ok-soft: #1C3527; --shadow: rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg);
+  background-image: var(--bg-grad);
+  color: var(--fg);
+  font-family: var(--font-ar);
+  font-size: 16px;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 56px;
+}
+.shell[lang="en"] { font-family: var(--font-en); }
+.band { height: 6px; margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  background: linear-gradient(90deg, #2B5FAE, #3F9AD6, #7FB9A6, #E3866F, #BE3F29); opacity: 0.9; }
+.shell { max-width: 1080px; margin: 0 auto; }
+header { padding-block: 26px 22px; display: grid; gap: 10px; }
+.topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+h1 { font-family: var(--font-en); font-weight: 700; font-size: clamp(2.2rem, 7vw, 3.3rem); line-height: 1.05; letter-spacing: -0.02em; margin: 0;
+  background: linear-gradient(90deg, var(--accent), var(--hot)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.langbtn { font: inherit; font-size: 0.9rem; font-weight: 600; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--accent); cursor: pointer; box-shadow: 0 4px 14px -8px var(--shadow); }
+.lede { color: var(--muted); max-width: 58ch; margin: 0; font-size: 1.05rem; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (min-width: 880px) { .grid { grid-template-columns: minmax(0, 350px) minmax(0, 1fr); } .panel { position: sticky; top: 16px; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 18px 40px -24px var(--shadow); }
+.panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.panel h2, .results h2 { font-size: 1.2rem; margin: 0; font-weight: 700; }
+.count { color: var(--muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.group { margin-bottom: 16px; }
+.group h3 { font-size: 0.8rem; color: var(--muted); margin: 0 0 8px; font-weight: 700; letter-spacing: 0.04em; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-size: 0.93rem; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface-2); color: var(--fg); cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s; }
+.chip:hover { border-color: var(--accent); transform: translateY(-1px); }
+.chip[aria-pressed="true"] { background: var(--accent-grad); border-color: transparent; color: var(--accent-fg); font-weight: 700; box-shadow: 0 6px 14px -8px var(--shadow); }
+:focus-visible { outline: 3px solid var(--hot); outline-offset: 2px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { font: inherit; font-weight: 700; padding: 10px 18px; border-radius: 12px; border: 1px solid transparent; cursor: pointer; background: var(--accent-grad); color: var(--accent-fg); box-shadow: 0 10px 20px -12px var(--shadow); }
+.btn.ghost { background: transparent; color: var(--accent); border-color: var(--line); box-shadow: none; }
+.note { background: var(--hot-soft); border-radius: 14px; padding: 12px 14px; font-size: 0.92rem; margin: 0 0 16px; }
+.results { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.tier { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.pill { font-size: 0.8rem; font-weight: 700; padding: 2px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+.pill.ready { background: var(--ok-soft); color: var(--ok); }
+.pill.almost { background: var(--hot-soft); color: var(--hot); }
+.dish { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; min-width: 0; box-shadow: 0 14px 30px -24px var(--shadow); transition: box-shadow 0.2s, border-color 0.2s; }
+.dish:hover { box-shadow: 0 18px 34px -22px var(--shadow); }
+.dish.flash { border-color: var(--hot); box-shadow: 0 0 0 4px var(--hot-soft); }
+.dish summary { list-style: none; cursor: pointer; padding: 16px 20px; display: grid; gap: 4px; }
+.dish summary::-webkit-details-marker { display: none; }
+.dish-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.dish h3 { font-size: 1.25rem; font-weight: 700; margin: 0; }
+.alt { color: var(--muted); font-size: 0.95rem; font-family: var(--font-en); }
+.shell[lang="en"] .alt { font-family: var(--font-ar); }
+.meta { color: var(--muted); font-size: 0.92rem; margin: 0; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tag { font-size: 0.82rem; padding: 2px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--fg); }
+.tag.miss { background: var(--hot-soft); color: var(--hot); font-weight: 700; }
+.tag.more { background: transparent; border: 1px dashed var(--line); color: var(--muted); }
+.body { padding: 0 20px 20px; border-top: 1px solid var(--line); }
+.body h4 { font-size: 0.85rem; color: var(--muted); margin: 14px 0 6px; font-weight: 700; letter-spacing: 0.04em; }
+.body ol { margin: 0; padding-inline-start: 1.4rem; display: grid; gap: 8px; max-width: 64ch; }
+.empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 18px; padding: 28px 20px; color: var(--muted); }
+footer { margin-top: 30px; color: var(--muted); font-size: 0.9rem; max-width: 70ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+
+<div class="band"></div>
+<div class="shell" id="shell" dir="rtl" lang="ar-TN">
+  <header>
+    <div class="topline">
+      <h1 dir="ltr">ThinkCook</h1>
+      <button class="langbtn" id="lang" type="button">English</button>
+    </div>
+    <p class="lede" id="lede"></p>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-labelledby="fz">
+      <div class="panel-head">
+        <h2 id="fz"></h2>
+        <span class="count" id="count" aria-live="polite"></span>
+      </div>
+      <div id="groups"></div>
+      <div class="actions">
+        <button class="btn" id="surprise" type="button"></button>
+        <button class="btn ghost" id="clear" type="button"></button>
+      </div>
+    </section>
+
+    <section class="results" aria-live="polite">
+      <div id="example" class="note" hidden></div>
+      <div id="out"></div>
+    </section>
+  </div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+var UI = {
+  ar: {
+    lede: "اختار شنوّة عندك في الفريزر، و ThinkCook يقلّك شنوّة تنجم تطيّب من الأكلات التونسية. و في كل أكلة نوريولك شنوّة ناقصك.",
+    fz: "الفريزر متاعي", surprise: "اختارلي أكلة", clear: "امسح الكل", lang: "English",
+    example: "عمّرنا الفريزر بمثال: علوش، جلبانة، بطاطا و بيض. كليكي على الحوايج اللي عندك باش تبدّلهم.",
+    ready: "تنجم تطيّب توّا", almost: "قريب، ناقصك حاجة", method: "الطريقة", need: "ناقصك ", better: "أحسن كان عندك ",
+    sep: "، ",
+    empty: "ما لقينا حتى أكلة بالحوايج هاذم. زيد بيضة، خضرة ولا لحم.",
+    none: "الفريزر فارغ. كليكي على الحوايج اللي عندك باش تشوف الأكلات.",
+    foot: "كل الأكلات نعتبرو عندك: زيت الزيتون، بصل، ثوم، معجون الطماطم، هريسة، كروية، كسبر، كمون، ملح، فلفل أسود و ليمون. الخضرة المجمدة تحطها مباشرة من الفريزر، أما اللحم و الحوت ففكّهم قبل. أفكار الأكلات من موقع Our Tunisian Table."
+  },
+  en: {
+    lede: "Tick what is in your freezer. ThinkCook lists the Tunisian dishes you can make, with the missing items shown for each one.",
+    fz: "My freezer", surprise: "Pick one for me", clear: "Clear all", lang: "العربية",
+    example: "Example freezer loaded: lamb, peas, potatoes and eggs. Tap items to match what you really have.",
+    ready: "Ready to cook", almost: "Almost there", method: "Method", need: "Need ", better: "Better with ",
+    sep: ", ",
+    empty: "Nothing in your freezer matches a dish yet. Try adding an egg, a vegetable or a meat.",
+    none: "Your freezer list is empty. Tap items to see dishes.",
+    foot: "Every recipe assumes you already have olive oil, onion, garlic, tomato paste, harissa, caraway, coriander, cumin, salt, pepper and lemon. Frozen vegetables go in straight from the freezer; thaw meat and fish first. Dish ideas inspired by ourtunisiantable.com."
+  }
+};
+var GROUPS = {
+  Meat: {ar: "اللحوم", en: "Meat"}, Seafood: {ar: "الحوت", en: "Seafood"},
+  Veg: {ar: "الخضرة", en: "Vegetables"}, Pantry: {ar: "عجين و حوايج أخرى", en: "Dough and pantry"}
+};
+var ING = [
+  {id:"lamb", g:"Meat", ar:"علوش", en:"Lamb"}, {id:"beef", g:"Meat", ar:"لحم بقري", en:"Beef"}, {id:"chicken", g:"Meat", ar:"دجاج", en:"Chicken"},
+  {id:"minced", g:"Meat", ar:"كفتة (لحم مفروم)", en:"Minced meat"}, {id:"merguez", g:"Meat", ar:"مرقاز", en:"Merguez"},
+  {id:"fish", g:"Seafood", ar:"حوت", en:"Fish fillets"}, {id:"shrimp", g:"Seafood", ar:"قمبري", en:"Shrimp"}, {id:"calamari", g:"Seafood", ar:"كلمار", en:"Calamari"},
+  {id:"peas", g:"Veg", ar:"جلبانة", en:"Peas"}, {id:"greenbeans", g:"Veg", ar:"لوبيا خضراء", en:"Green beans"}, {id:"spinach", g:"Veg", ar:"سبانخ", en:"Spinach"},
+  {id:"okra", g:"Veg", ar:"بامية", en:"Okra"}, {id:"broadbeans", g:"Veg", ar:"فول", en:"Broad beans"}, {id:"artichoke", g:"Veg", ar:"أرضي شوكي", en:"Artichoke hearts"},
+  {id:"potatoes", g:"Veg", ar:"بطاطا", en:"Potatoes or fries"}, {id:"pumpkin", g:"Veg", ar:"قرع", en:"Pumpkin"}, {id:"carrots", g:"Veg", ar:"جزر", en:"Carrots"},
+  {id:"zucchini", g:"Veg", ar:"كورجات", en:"Zucchini"}, {id:"peppers", g:"Veg", ar:"فلفل", en:"Bell peppers"},
+  {id:"brik", g:"Pantry", ar:"ورقة بريك", en:"Brik pastry"}, {id:"dough", g:"Pantry", ar:"عجين الخبز", en:"Bread dough"}, {id:"eggs", g:"Pantry", ar:"بيض", en:"Eggs"},
+  {id:"couscous", g:"Pantry", ar:"كسكسي", en:"Couscous"}, {id:"chickpeas", g:"Pantry", ar:"حمص", en:"Chickpeas"}, {id:"tuna", g:"Pantry", ar:"تن", en:"Canned tuna"},
+  {id:"cheese", g:"Pantry", ar:"فرماج", en:"Cheese"},
+  {id:"whitebeans", g:"Pantry", ar:"لوبيا بيضاء", en:"White beans"}, {id:"lentils", g:"Pantry", ar:"عدس", en:"Lentils"},
+  {id:"frik", g:"Pantry", ar:"فريك", en:"Frik (green wheat)"}, {id:"mloukhia", g:"Pantry", ar:"مسحوق الملوخية", en:"Mloukhia powder"},
+  {id:"bread", g:"Pantry", ar:"خبز", en:"Bread"},
+  {id:"octopus", g:"Seafood", ar:"قرنيط", en:"Octopus"}, {id:"sardines", g:"Seafood", ar:"سردين", en:"Sardines"},
+  {id:"liver", g:"Meat", ar:"كبدة", en:"Liver"},
+  {id:"cucumber", g:"Veg", ar:"خيار", en:"Cucumber"}, {id:"tomatoes", g:"Veg", ar:"طماطم", en:"Tomatoes"},
+  {id:"parsley", g:"Veg", ar:"معدنوس", en:"Parsley"}, {id:"mint", g:"Veg", ar:"نعناع", en:"Mint"},
+  {id:"pasta", g:"Pantry", ar:"مكرونة", en:"Pasta"}, {id:"olives", g:"Pantry", ar:"زيتون", en:"Olives"},
+  {id:"driedchili", g:"Pantry", ar:"فلفل حار يابس", en:"Dried red chilies"}
+];
+var LBL = {}; ING.forEach(function (i) { LBL[i.id] = i; });
+
+/* any: at least one is the star of the dish. all: must also have. opt: makes it better. m: minutes. */
+var DISHES = [
+  {id:"couscous-lamb", m:120, any:["lamb","beef","chicken"], all:["couscous"], opt:["carrots","pumpkin","potatoes","zucchini","chickpeas"]},
+  {id:"couscous-fish", m:75, any:["fish"], all:["couscous"], opt:["pumpkin","potatoes","chickpeas","peppers"]},
+  {id:"marqa-peas", m:60, any:["peas"], all:[], opt:["lamb","beef","artichoke","potatoes"]},
+  {id:"marqa-beans", m:50, any:["greenbeans"], all:[], opt:["lamb","beef","potatoes"]},
+  {id:"marqa-okra", m:60, any:["okra"], all:[], opt:["lamb","beef","chicken"]},
+  {id:"ardhi-shawki", m:70, any:["artichoke"], all:[], opt:["lamb","beef","peas","broadbeans"]},
+  {id:"marqa-fava", m:50, any:["broadbeans"], all:[], opt:["lamb","beef","artichoke","peas"]},
+  {id:"brik", m:25, any:["brik"], all:["eggs"], opt:["tuna","minced","shrimp","potatoes","spinach","cheese","parsley"]},
+  {id:"ojja-merguez", m:25, any:["merguez"], all:["eggs"], opt:["peppers","potatoes"]},
+  {id:"ojja-shrimp", m:25, any:["shrimp"], all:["eggs"], opt:["peppers","potatoes","cheese"]},
+  {id:"chakchouka", m:30, any:["peppers","merguez"], all:["eggs"], opt:["potatoes","minced"]},
+  {id:"kafteji", m:35, any:["peppers","pumpkin","zucchini","potatoes"], all:["eggs"], opt:[]},
+  {id:"chorba", m:60, any:["lamb","beef","chicken"], all:[], opt:["chickpeas","peas","carrots"]},
+  {id:"tajine", m:50, any:["chicken","minced","spinach","peas"], all:["eggs"], opt:["cheese","potatoes"]},
+  {id:"fricasse", m:45, any:["dough"], all:[], opt:["tuna","eggs","potatoes","peppers","olives"]},
+  {id:"kabkabou", m:40, any:["fish"], all:[], opt:["potatoes","peppers","olives"]},
+  {id:"calamari", m:35, any:["calamari"], all:[], opt:["eggs","peppers"]},
+  {id:"shrimp", m:15, any:["shrimp"], all:[], opt:["peppers","potatoes"]},
+  {id:"mbatten", m:60, any:["minced"], all:["potatoes"], opt:["eggs","cheese"]},
+  {id:"kefta", m:40, any:["minced"], all:[], opt:["potatoes","peppers","eggs","peas"]},
+  {id:"roast-chicken", m:75, any:["chicken"], all:[], opt:["potatoes","carrots","peppers"]},
+  {id:"sabanekh", m:50, any:["spinach"], all:[], opt:["beef","lamb","minced","chickpeas"]},
+  {id:"roast-lamb", m:180, any:["lamb"], all:[], opt:["potatoes","carrots"]},
+  {id:"mloukhia", m:150, any:["lamb","beef"], all:["mloukhia"], opt:[]},
+  {id:"loubia", m:90, any:["whitebeans"], all:[], opt:["lamb","beef"]},
+  {id:"shorba-frik", m:75, any:["lamb","beef","chicken"], all:["frik"], opt:["chickpeas"]},
+  {id:"lablabi", m:30, any:["chickpeas"], all:[], opt:["bread","eggs","tuna"]},
+  {id:"lentil-soup", m:50, any:["lentils"], all:[], opt:["chicken","carrots","potatoes"]},
+  {id:"sahn", m:20, any:["tuna"], all:["eggs"], opt:["potatoes","peppers"]},
+  {id:"mechouia", m:30, any:["peppers"], all:[], opt:["tuna","eggs"]},
+  {id:"carrot-salad", m:25, any:["carrots"], all:[], opt:[]},
+  {id:"couscous-veg", m:70, any:["pumpkin","zucchini"], all:["couscous"], opt:["carrots","chickpeas","potatoes"]},
+  {id:"couscous-octopus", m:90, any:["octopus"], all:["couscous"], opt:["chickpeas","potatoes","peppers"]},
+  {id:"makrouna", m:35, any:["pasta"], all:[], opt:["minced","lamb","beef","chicken","peas"]},
+  {id:"casse-croute", m:15, any:["tuna"], all:["bread"], opt:["eggs","potatoes","olives","peppers"]},
+  {id:"cucumber-salad", m:10, any:["cucumber"], all:[], opt:["tomatoes","peppers","mint"]},
+  {id:"mint-tea", m:10, any:["mint"], all:[], opt:[]},
+  {id:"harissa", m:30, any:["driedchili"], all:[], opt:[]},
+  {id:"sardines", m:20, any:["sardines"], all:[], opt:["tomatoes","potatoes"]},
+  {id:"liver", m:15, any:["liver"], all:[], opt:["peppers","potatoes"]}
+];
+
+/* [name, description, steps] per language */
+var TXT = {
+"couscous-lamb": {
+ ar:["كسكسي بالعلوش","أكلة الجمعة: لحم طري و خضرة على كسكسي مبخّر.",["حمّر اللحم مع البصل، معجون الطماطم، الهريسة، الكروية و الكسبر في شوية زيت.","زيد الماء و الحمص و خلّيه يطيب 45 دقيقة. زيد الجزر، البطاطا، القرع و الكورجات في آخر 25 دقيقة.","بخّر الكسكسي على المرقة مرتين، و في كل مرة رشّ عليه شوية زيت و مغرفة مرقة.","طلّع الكسكسي في الصحن، حط فوقو اللحم و الخضرة، و الهريسة على جنب."]],
+ en:["Couscous with lamb","The Friday classic: tender meat and vegetables over steamed grain.",["Brown the meat with chopped onion, tomato paste, harissa, caraway and coriander.","Cover with water, add chickpeas and simmer 45 minutes. Add carrots, potatoes, pumpkin and zucchini for the last 25.","Steam the couscous over the broth twice, working in a little oil and a ladle of broth between steamings.","Heap the grain on a dish, top with meat and vegetables, serve harissa on the side."]]},
+"couscous-fish": {
+ ar:["كسكسي بالحوت","كسكسي ساحلي بمرقة حوت حارة بالطماطم.",["غلّي البصل، معجون الطماطم، الهريسة و الثوم في الماء 20 دقيقة مع الحمص و البطاطا.","زيد القرع و الفلفل، و بعد الحوت المفكّك في آخر 10 دقايق.","بخّر الكسكسي على المرقة و رشّ عليه زيت.","حط الحوت و الخضرة فوق الكسكسي مع مغرفة مرقة."]],
+ en:["Couscous with fish","Coastal version with a spicy tomato fish broth.",["Simmer onion, tomato paste, harissa and garlic in water for 20 minutes, with chickpeas and potatoes.","Add pumpkin and peppers, then the thawed fish for the last 10 minutes.","Steam the couscous over the broth and fluff with oil.","Serve the fish and vegetables on top with a ladle of broth."]]},
+"marqa-peas": {
+ ar:["مرقة جلبانة","جلبانة في مرقة طماطم خفيفة، بلحم ولا من غير.",["حمّر اللحم المقطّع (كان تحب) مع البصل و الثوم، و زيد معجون الطماطم، الهريسة و الكروية.","زيد الماء و خلّيه يطيب حتى اللحم يقرب يستوي، تقريبا 40 دقيقة.","زيد الجلبانة المجمدة، الأرضي شوكي و البطاطا و خلّيهم 15 دقيقة أخرى.","زيد عصير ليمون و قدّمها بالخبز."]],
+ en:["Marqat Jelbana","Peas stewed in a light tomato sauce, with or without meat.",["Brown cubed meat (if using) with onion and garlic, then stir in tomato paste, harissa and caraway.","Add water and simmer until the meat is nearly tender, about 40 minutes.","Add the frozen peas, artichoke hearts and potatoes and cook 15 minutes more.","Finish with lemon juice and serve with bread."]]},
+"marqa-beans": {
+ ar:["مرقة لوبيا خضراء","لوبيا خضراء في مرقة حمراء غنية، تتاكل بالخبز.",["فرّق البصل و الثوم في الزيت، و زيد معجون الطماطم، الهريسة و الكروية.","زيد اللحم المقطّع و الماء، و خلّيه 30 دقيقة كان تستعمل لحم.","زيد اللوبيا و البطاطا و خلّيهم 15 لـ 20 دقيقة حتى تتكثّف المرقة.","زيد الملح و قدّمها بالخبز."]],
+ en:["Green beans stew","Green beans in a rich red sauce, great with bread.",["Soften onion and garlic in oil, then add tomato paste, harissa and caraway.","Add meat cubes and water; simmer 30 minutes if using meat.","Add green beans and potatoes, cook 15 to 20 minutes until the sauce is thick.","Season and serve with bread."]]},
+"marqa-okra": {
+ ar:["مرقة بامية","بامية في مرقة طماطم غنية.",["حمّر اللحم مع البصل، معجون الطماطم، الهريسة و شوية قرفة.","غطّيه بالماء و خلّيه يطيب 30 دقيقة.","زيد البامية المجمدة كاملة و خلّيها 20 دقيقة من غير ما تحرّك بقوة.","قدّمها بالخبز ولا بالرز."]],
+ en:["Marqat Bamia","Okra stew with a deep tomato flavor.",["Brown the meat with onion, tomato paste, harissa and a pinch of cinnamon.","Cover with water and simmer 30 minutes.","Add the frozen okra whole and cook 20 minutes without stirring hard.","Serve with bread or rice."]]},
+"ardhi-shawki": {
+ ar:["مرقة أرضي شوكي","قلوب الأرضي شوكي في مرقة بالليمون، أكلة الشتاء.",["حمّر اللحم مع البصل، معجون الطماطم و الكسبر، و زيد الماء و خلّيه 40 دقيقة.","زيد قلوب الأرضي شوكي، الجلبانة و الفول.","خلّيهم 15 دقيقة و زيد عصير ليمون.","قدّمها سخونة بالخبز."]],
+ en:["Artichoke and meat stew","Artichoke hearts in a lemony sauce, a winter favorite.",["Brown the meat with onion, tomato paste and coriander, then add water and simmer 40 minutes.","Add artichoke hearts, peas and broad beans.","Cook 15 minutes, finish with lemon juice.","Serve hot with bread."]]},
+"marqa-fava": {
+ ar:["مرقة فول","فول أخضر في مرقة بالثوم.",["قلّي الثوم و البصل، زيد معجون الطماطم، الهريسة و الكمون.","زيد اللحم و الماء و خلّيه 30 دقيقة.","زيد الفول و خلّيه 15 دقيقة.","قدّمها بالليمون و الخبز."]],
+ en:["Broad bean stew","Fresh green broad beans in a garlicky sauce.",["Fry garlic and onion, add tomato paste, harissa and cumin.","Add meat and water; simmer 30 minutes.","Add broad beans and cook 15 minutes.","Serve with lemon and bread."]]},
+"brik": {
+ ar:["بريك بالبيض","مثلث مقرمش بورقة البريك و بيضة سايلة في الوسط.",["حط ورقة بريك على الطاولة، و زيد ملعقة حشو (تن، كفتة مطيّبة، قمبري ولا بطاطا مهرّسة) مع المعدنوس.","اعمل حفرة صغيرة و كسّر فيها بيضة.","ثنّي الورقة على شكل مثلث و الصق الحافة بشوية ماء.","قلّيه في الزيت دقيقة لـ دقيقتين من كل جهة، و قدّمو بالليمون."]],
+ en:["Brik with egg","A crisp pastry triangle with a runny egg inside.",["Lay a brik sheet flat; add a spoon of filling (tuna, cooked mince, shrimp or mashed potato) and chopped parsley.","Make a small well and crack an egg into it.","Fold into a triangle and seal the edge with a dab of water.","Shallow fry 1 to 2 minutes per side. Serve with lemon."]]},
+"ojja-merguez": {
+ ar:["عجة بالمرقاز","مرقاز حار و بيض في مرقة طماطم و هريسة.",["قلّي الثوم، معجون الطماطم، الهريسة و الكروية في الزيت، و زيد شوية ماء باش تولّي مرقة.","زيد المرقاز المقطّع و الفلفل ولا البطاطا، و خلّيه 10 دقايق.","كسّر البيض فوق المرقة و غطّي.","خلّيه حتى يستوي البياض و قدّمو في نفس المقلة."]],
+ en:["Ojja Merguez","Spicy sausages and eggs in a harissa tomato sauce.",["Fry garlic, tomato paste, harissa and caraway in oil. Add water to make a sauce.","Add sliced merguez and peppers or fries; simmer 10 minutes.","Crack the eggs over the sauce and cover.","Cook until the whites set and serve in the pan."]]},
+"ojja-shrimp": {
+ ar:["عجة قمبري","العجة بالقمبري: سريعة و حارة.",["اعمل مرقة بالثوم، معجون الطماطم، الهريسة و الماء.","زيد القمبري المفكّك و الفلفل، و خلّيه 5 دقايق.","كسّر البيض، غطّي و خلّيه حتى يستوي.","رشّ الفرماج كان عندك و قدّمها بالخبز."]],
+ en:["Ojja with shrimp","The seafood twin of ojja: quick and fiery.",["Make a sauce of garlic, tomato paste, harissa and water.","Add the thawed shrimp and peppers; simmer 5 minutes.","Crack in the eggs, cover and cook until just set.","Scatter over cheese if you have it and serve with bread."]]},
+"chakchouka": {
+ ar:["شكشوكة","فلفل و طماطم مطيّبين حتى يولّيو مربّى، و البيض فوقهم.",["طيّب الفلفل المقطّع و البصل في زيت الزيتون.","زيد معجون الطماطم، الهريسة، الثوم، الكروية و شوية ماء، و خلّيه 15 دقيقة.","زيد البطاطا ولا المرقاز كان تحب.","كسّر البيض، غطّي و خلّيه حتى يستوي."]],
+ en:["Chakchouka","Peppers and tomato simmered until jammy, with eggs on top.",["Soften sliced peppers and onion in olive oil.","Add tomato paste, harissa, garlic, caraway and a little water; cook 15 minutes.","Add potatoes or merguez if using.","Crack in the eggs, cover and cook until set."]]},
+"kafteji": {
+ ar:["كفتاجي","خضرة مقلية مفرومة مع بعضها و البيض.",["قلّي الخضرة مقطّعة مكعبات حتى تولّي دهبية، على دفعات.","صفّيها و فرمها بالسكين على لوحة مع بعضها.","زيد الملح، الكروية و الهريسة.","رجّعها للمقلة، زيد البيض المخفوق و خلّيه حتى يستوي."]],
+ en:["Kafteji","Fried vegetables chopped together and finished with egg.",["Fry the vegetables in cubes until golden, in batches.","Drain, then chop them roughly together on a board with a knife.","Season with salt, caraway and harissa.","Return to the pan, stir in beaten eggs and cook until set."]]},
+"chorba": {
+ ar:["شربة","شربة طماطم تخينة باللحم و الحمص.",["حمّر اللحم المقطّع صغير مع البصل، معجون الطماطم و القرفة.","زيد الماء و الحمص و خلّيه يطيب 40 دقيقة.","زيد شوية مكرونة صغيرة كان تحب.","زيد الليمون و النعناع."]],
+ en:["Chorba","A thick tomato soup with meat and chickpeas.",["Brown small meat pieces with onion, tomato paste and cinnamon.","Add water and chickpeas; simmer 40 minutes.","Add a handful of small pasta if you like.","Finish with lemon and fresh mint."]]},
+"tajine": {
+ ar:["طاجين تونسي","أكلة مطيّبة في الفرن بالبيض، تتقطّع مربعات. ما هيش مرقة مغربية.",["طيّب الدجاج، الكفتة، السبانخ ولا الجلبانة مع البصل و التوابل و فرمها.","اخفق 6 لـ 8 بيضات مع الفرماج، الملح و الفلفل، و زيد الحشو.","صبّو في طبسي مدهون بالزيت.","طيّبو في الفرن على 180 درجة 30 لـ 35 دقيقة حتى يولّي دهبي و يتماسك. قطّعو مربعات."]],
+ en:["Tunisian tajine","A baked, sliceable egg dish. It is not the Moroccan stew.",["Cook the chicken, mince, spinach or peas with onion and spices, then shred or chop.","Beat 6 to 8 eggs with cheese, salt and pepper; stir in the filling.","Pour into an oiled dish.","Bake at 180 °C for 30 to 35 minutes until firm and golden. Cut into squares."]]},
+"fricasse": {
+ ar:["فريكاسي","خبزات صغار مقلية محشية بالتن و البيض و الهريسة.",["كوّر العجين خبزات صغار و خلّيهم يتنفخو 15 دقيقة.","قلّيهم في زيت غزير حتى يولّو دهبيين، و صفّيهم.","شقّ الخبزات و املاهم بالتن، البيض المسلوق، البطاطا، الزيتون و الهريسة.","كُلهم سخونة."]],
+ en:["Fricassé","Fried dough rolls stuffed with tuna, egg and harissa.",["Shape the dough into small rolls and let them rise 15 minutes.","Deep fry until golden and puffed, then drain.","Split the rolls and fill with tuna, boiled egg, potato, olives and harissa.","Serve warm."]]},
+"kabkabou": {
+ ar:["كبكبو","حوت في مرقة طماطم بالكبار و الزيتون.",["فرّق البصل و الثوم، زيد معجون الطماطم، الهريسة و شوية ماء.","زيد البطاطا و الفلفل و خلّيه 15 دقيقة.","حط الحوت في المرقة و خلّيه 10 دقايق.","زيد الليمون، الكبار و الزيتون."]],
+ en:["Kabkabou","Fish in a tangy tomato, caper and olive sauce.",["Soften onion and garlic, add tomato paste, harissa and a little water.","Add potatoes and peppers and simmer 15 minutes.","Lay the fish in the sauce and cook 10 minutes.","Finish with lemon, capers and olives."]]},
+"calamari": {
+ ar:["كلمار بالهريسة","كلمار طري في مرقة طماطم حارة.",["نشّف الكلمار المفكّك و قلّيه بسرعة في زيت سخون.","زيد الثوم، معجون الطماطم، الهريسة و شوية ماء.","خلّيه يطيب 20 لـ 25 دقيقة حتى يولّي طري.","زيد الليمون و المعدنوس."]],
+ en:["Calamari in harissa sauce","Tender rings in a spicy tomato sauce.",["Pat the thawed calamari dry and sear it quickly in hot oil.","Add garlic, tomato paste, harissa and a splash of water.","Simmer 20 to 25 minutes until soft.","Finish with lemon and parsley."]]},
+"shrimp": {
+ ar:["قمبري بالثوم و الهريسة","قمبري سريع في المقلة، يتاكل بالخبز.",["سخّن زيت الزيتون مع برشا ثوم مقطّع و ملعقة هريسة.","زيد القمبري المفكّك و الفلفل.","طيّبو 4 لـ 5 دقايق حتى يولّي ورديّ.","اعصر عليه ليمون و قدّمو بالخبز."]],
+ en:["Garlic and harissa shrimp","Fast pan shrimp, good with bread.",["Heat olive oil with plenty of sliced garlic and a spoon of harissa.","Add the thawed shrimp and peppers.","Cook 4 to 5 minutes until pink.","Squeeze over lemon and serve with bread."]]},
+"mbatten": {
+ ar:["مبطّن","كرات بطاطا محشية بلحم مطيّب، مقلية.",["اسلق البطاطا و هرّسها مع الملح، الكروية و بيضة.","طيّب الكفتة مع البصل، المعدنوس و التوابل للحشو.","سطّح البطاطا في كفّك، حط الحشو و سكّرها على شكل قرص.","غمّسها في البيض المخفوق و قلّيها حتى تولّي دهبية."]],
+ en:["Mbatten","Potato patties stuffed with spiced meat, then fried.",["Boil and mash the potatoes with salt, caraway and an egg.","Cook the mince with onion, parsley and spices for the filling.","Flatten potato in your palm, add filling and close into a patty.","Coat in beaten egg and fry until golden."]]},
+"kefta": {
+ ar:["كفتة بالمرقة","كرات كفتة مطيّبة في مرقة طماطم.",["اخلط الكفتة مع بصلة مبشورة، معدنوس، كمون، ملح و فلفل، و كوّرها.","اعمل مرقة بمعجون الطماطم، الثوم، الهريسة و الماء.","زيد الكرات و الخضرة و خلّيهم 25 دقيقة.","كسّر البيض في الآخر كان تحب."]],
+ en:["Kefta in tomato sauce","Spiced meatballs simmered in sauce.",["Mix the mince with grated onion, parsley, cumin, salt and pepper and roll into balls.","Make a sauce of tomato paste, garlic, harissa and water.","Add the meatballs and vegetables and simmer 25 minutes.","Crack in eggs at the end if you like."]]},
+"roast-chicken": {
+ ar:["دجاج مشوي بالبطاطا","دجاج بالهريسة و الليمون و بطاطا مقرمشة تحتو.",["دلّك الدجاج المفكّك بالزيت، الهريسة، الثوم، عصير الليمون و الكروية.","رتّب البطاطا، الجزر و الفلفل حواليه.","اشويه في الفرن على 200 درجة قرابة ساعة، و اسقيه بالمرقة مرة.","خلّيه يرتاح 10 دقايق قبل ما تقطّعو."]],
+ en:["Roast chicken with potatoes","Harissa and lemon chicken, crisp potatoes beneath.",["Rub the thawed chicken with oil, harissa, garlic, lemon juice and caraway.","Arrange potatoes, carrots and peppers around it.","Roast at 200 °C for about 60 minutes, basting once.","Rest 10 minutes before carving."]]},
+"sabanekh": {
+ ar:["مرقة سبانخ","سبانخ مطيّبة مع لحم بقري ولا علوش و حمص.",["حمّر اللحم مع البصل و الثوم، زيد الماء و خلّيه 30 دقيقة.","زيد الحمص و السبانخ المجمدة.","خلّيه 15 دقيقة حتى يتكثّف.","زيد الكمون و الليمون."]],
+ en:["Spinach and meat stew","Spinach cooked down with beef or lamb and chickpeas.",["Brown the meat with onion and garlic, then add water and simmer 30 minutes.","Add chickpeas and the frozen spinach.","Cook 15 minutes until thick.","Season with cumin and lemon."]]},
+"roast-lamb": {
+ ar:["علوش مشوي على نار هادئة","علوش يتفكّك من العظم، مع بطاطا.",["دلّك العلوش بالثوم، الهريسة، الكروية، الملح و الزيت و خلّيه 30 دقيقة.","اشويه مغطّى على 160 درجة ساعتين مع كاس ماء.","زيد البطاطا و الجزر، اكشفو و اشويه 45 دقيقة.","خلّيه يرتاح 15 دقيقة و قدّمو."]],
+ en:["Slow roast lamb","Falling-off-the-bone lamb with potatoes.",["Rub the lamb with garlic, harissa, caraway, salt and oil; rest 30 minutes.","Roast covered at 160 °C for 2 hours with a cup of water.","Add potatoes and carrots, uncover and roast 45 minutes.","Rest 15 minutes and serve."]]},
+"mloukhia": {
+ ar:["ملوخية","طبق غامق بمسحوق الملوخية و اللحم، يتطيّب بالساعات.",["سخّن برشا زيت و زيد مسحوق الملوخية و حرّكو حتى يتشرّب الزيت.","زيد الماء شوية شوية و أنت تحرّك باش ما يولّيش فيه كتل.","في قدرة أخرى حمّر اللحم بالثوم و التوابل و زيدو للملوخية.","خلّيها تطيب على نار هادئة ساعتين تقريبا حتى يعلا الزيت و يولّي لونها غامق. قدّمها بالخبز."]],
+ en:["Mloukhia","A very dark, slow-cooked stew of mloukhia powder and meat.",["Heat a generous amount of oil and stir in the mloukhia powder until it absorbs the oil.","Add water gradually, whisking so no lumps form.","Brown the meat with garlic and spices in a separate pot and add it to the mloukhia.","Simmer gently for about 2 hours until the oil rises and the color is very dark. Serve with bread."]]},
+"loubia": {
+ ar:["مرقة لوبيا بيضاء","لوبيا بيضاء مطيّبة بالطماطم و الهريسة.",["اسلق اللوبيا البيضاء المنقوعة حتى تقرب تلين.","في قدرة أخرى حمّر اللحم (كان تحب) مع البصل، الثوم، معجون الطماطم، الهريسة و الكروية.","زيد اللوبيا مع شوية من مائها و خلّيها 30 دقيقة حتى تتكثّف المرقة.","قدّمها بالخبز و شوية زيت زيتون."]],
+ en:["Loubia (white bean stew)","White beans simmered in a tomato and harissa sauce.",["Boil the soaked white beans until nearly tender.","In another pot, brown the meat (if using) with onion, garlic, tomato paste, harissa and caraway.","Add the beans with some of their cooking water and simmer 30 minutes until thick.","Serve with bread and a drizzle of olive oil."]]},
+"shorba-frik": {
+ ar:["شربة فريك","شربة بالفريك الأخضر، اللحم و الطماطم.",["حمّر اللحم مع البصل، معجون الطماطم و الكسبر.","زيد الماء و الحمص و خلّيه 40 دقيقة.","زيد الفريك المغسول و خلّيه 20 دقيقة حتى يلين.","زيد الليمون و القزبر."]],
+ en:["Shorba Frik","Soup with green wheat, meat and tomato.",["Brown the meat with onion, tomato paste and coriander.","Add water and chickpeas and simmer 40 minutes.","Add the rinsed frik and cook 20 minutes until tender.","Finish with lemon and fresh coriander."]]},
+"lablabi": {
+ ar:["لبلابي","شربة حمص حارة بالكمون على الخبز اليابس.",["اسلق الحمص المنقوع مع الثوم حتى يلين.","زيد للمرقة الكمون، الهريسة، الملح و عصير ليمون.","فتّت الخبز اليابس في صحن و صبّ عليه الحمص و المرقة.","زيد بيضة، تن، و شوية زيت زيتون."]],
+ en:["Lablabi","A spicy cumin chickpea soup poured over stale bread.",["Boil the soaked chickpeas with garlic until tender.","Season the broth with cumin, harissa, salt and lemon juice.","Tear stale bread into a bowl and ladle over the chickpeas and broth.","Top with an egg, tuna and olive oil."]]},
+"lentil-soup": {
+ ar:["شربة عدس بالدجاج","شربة عدس تخينة مع قطع دجاج.",["اسلق الدجاج في الماء مع البصل و التوابل حتى يستوي، و فكّكو.","في نفس المرقة زيد العدس، الجزر و البطاطا.","خلّيها 30 دقيقة حتى يتهرّس العدس.","رجّع الدجاج و زيد الكمون و الليمون."]],
+ en:["Lentil soup with chicken","A thick lentil soup with shredded chicken.",["Simmer the chicken in water with onion and spices until cooked, then shred it.","In the same broth, add lentils, carrots and potatoes.","Cook 30 minutes until the lentils are soft.","Return the chicken and season with cumin and lemon."]]},
+"sahn": {
+ ar:["صحن تونسي","صحن بارد بالتن و البيض و الخضرة، مع الهريسة.",["اسلق البيض و البطاطا و قطّعهم.","رتّبهم في صحن مع التن و الفلفل.","رشّ زيت الزيتون، الليمون و الملح.","حط الهريسة على جنب."]],
+ en:["Tunisian plate (Sahn Tounsi)","A cold plate of tuna, egg and vegetables with harissa.",["Boil the eggs and potatoes and slice them.","Arrange on a plate with the tuna and peppers.","Dress with olive oil, lemon and salt.","Serve harissa on the side."]]},
+"mechouia": {
+ ar:["سلاطة مشوية","فلفل مشوي مفروم بالثوم و زيت الزيتون.",["اشوي الفلفل (و الطماطم كان تحب) حتى يتحرق قشرو.","قشّرو و فرمو بالسكين مع الثوم.","زيد الملح، الكروية، زيت الزيتون و ليمون.","قدّمها بالتن و بيضة مسلوقة."]],
+ en:["Salade méchouia","Grilled peppers chopped with garlic and olive oil.",["Grill the peppers (and tomatoes if you like) until the skin chars.","Peel and chop them with garlic.","Season with salt, caraway, olive oil and lemon.","Serve with tuna and a boiled egg."]]},
+"carrot-salad": {
+ ar:["سلاطة جزر","جزر مسلوق بالثوم، الكمون و الهريسة.",["اسلق الجزر حتى يلين و قطّعو.","زيد الثوم المهروس، الكمون، الكروية و الهريسة.","زيد زيت الزيتون، الليمون و الملح.","خلّيها تبرد و قدّمها."]],
+ en:["Carrot salad","Boiled carrots with garlic, cumin and harissa.",["Boil the carrots until tender and slice them.","Add crushed garlic, cumin, caraway and harissa.","Dress with olive oil, lemon and salt.","Let it cool and serve."]]},
+"couscous-veg": {
+ ar:["كسكسي بالقرع و الكورجات","كسكسي بالخضرة وحدها، خفيف و ملوّن.",["قلّي البصل مع معجون الطماطم، الهريسة و الكروية في الزيت، و زيد الماء.","زيد الحمص و الجزر، و بعد القرع و الكورجات في آخر 20 دقيقة.","بخّر الكسكسي على المرقة مرتين مع شوية زيت.","قدّم الكسكسي بالخضرة و مغرفة مرقة."]],
+ en:["Couscous with zucchini and pumpkin","Vegetable-only couscous, light and colorful.",["Fry onion with tomato paste, harissa and caraway in oil, then add water.","Add chickpeas and carrots, then pumpkin and zucchini for the last 20 minutes.","Steam the couscous over the broth twice with a little oil.","Serve the couscous with the vegetables and a ladle of broth."]]},
+"couscous-octopus": {
+ ar:["كسكسي بالقرنيط","كسكسي بالقرنيط (الأخطبوط) في مرقة حمراء.",["اسلق القرنيط في الماء حتى يلين، تقريبا 45 دقيقة، و قطّعو.","حضّر مرقة بالبصل، معجون الطماطم، الهريسة، الثوم و الحمص.","زيد القرنيط للمرقة و خلّيه 15 دقيقة.","بخّر الكسكسي على المرقة و قدّمو بالقرنيط فوقو."]],
+ en:["Couscous with octopus","Couscous with tender octopus in a red broth.",["Boil the octopus in water until tender, about 45 minutes, then slice it.","Make a broth with onion, tomato paste, harissa, garlic and chickpeas.","Add the octopus to the broth and cook 15 minutes.","Steam the couscous over the broth and serve topped with the octopus."]]},
+"makrouna": {
+ ar:["مكرونة بالصلصة","مكرونة بصلصة طماطم حارة و لحم، محبوبة برشا في تونس.",["حمّر الكفتة ولا اللحم مع البصل و الثوم.","زيد معجون الطماطم، الهريسة، الكروية و الماء، و خلّيها 20 دقيقة.","اسلق المكرونة في ماء مملّح حتى تقرب تستوي.","اخلطها بالصلصة و قدّمها سخونة."]],
+ en:["Makrouna","Pasta in a spicy tomato and meat sauce, a Tunisian favorite.",["Brown the mince or meat with onion and garlic.","Add tomato paste, harissa, caraway and water, and simmer 20 minutes.","Boil the pasta in salted water until nearly done.","Toss with the sauce and serve hot."]]},
+"casse-croute": {
+ ar:["كاسكروط","ساندويتش تونسي بالتن و الهريسة و الزيتون.",["شقّ الخبز بالطول.","امسح داخلو بالهريسة و زيت الزيتون.","املاه بالتن، البيض المسلوق، البطاطا المقلية، الزيتون و الفلفل.","رشّ شوية ليمون و كُلو."]],
+ en:["Casse-croûte","A Tunisian tuna sandwich with harissa and olives.",["Split the bread lengthwise.","Brush the inside with harissa and olive oil.","Fill with tuna, boiled egg, fries, olives and peppers.","Squeeze over a little lemon and eat."]]},
+"cucumber-salad": {
+ ar:["سلاطة خيار","سلاطة منعشة بالخيار، الزيت و الليمون.",["قشّر الخيار و قطّعو شرائح رقيقة.","زيد الطماطم و الفلفل المقطّعين كان تحب.","رشّ الملح، زيت الزيتون، الليمون و النعناع.","قدّمها باردة."]],
+ en:["Cucumber salad","A fresh cucumber salad with olive oil and lemon.",["Peel the cucumber and slice it thin.","Add chopped tomato and pepper if you like.","Dress with salt, olive oil, lemon and mint.","Serve cold."]]},
+"mint-tea": {
+ ar:["شاي بالنعناع","شاي أخضر بالنعناع، يتشرب بعد الأكل.",["غلّي الماء و زيد الشاي الأخضر.","زيد النعناع الطري و السكر.","خلّيه يتنقّع 3 لـ 5 دقايق.","صفّيه و قدّمو سخون."]],
+ en:["Mint tea","Green tea with fresh mint, served after the meal.",["Boil water and add the green tea.","Add fresh mint and sugar.","Steep 3 to 5 minutes.","Strain and serve hot."]]},
+"harissa": {
+ ar:["هريسة بالدار","هريسة تونسية متاع الدار من الفلفل الحار اليابس.",["نقّع الفلفل الحار اليابس في ماء سخون حتى يلين، و شيل الحب كان تحب هريسة أخف.","صفّيه و اطحنو مع الثوم، الملح، الكروية و الكسبر.","زيد زيت الزيتون حتى تولّي عجينة ناعمة.","حطها في برطمان و غطّيها بطبقة زيت زيتون، و احفظها في الثلاجة."]],
+ en:["Homemade harissa","Tunisian harissa made from dried red chilies.",["Soak the dried chilies in hot water until soft; remove the seeds for a milder paste.","Drain and blend with garlic, salt, caraway and coriander.","Add olive oil until you have a smooth paste.","Pack into a jar, cover with a layer of olive oil and keep in the fridge."]]},
+"sardines": {
+ ar:["سردين مقلي","سردين مقلي بالدقيق مع الهريسة و الليمون.",["نظّف السردين و فكّو، و تبّل بالملح، الثوم و الكمون.","غمّسو في الدقيق.","قلّيو في زيت سخون 2 لـ 3 دقايق من كل جهة.","قدّمو بالليمون و الهريسة."]],
+ en:["Fried sardines","Floured sardines fried crisp, with harissa and lemon.",["Clean and thaw the sardines, then season with salt, garlic and cumin.","Dredge in flour.","Fry in hot oil 2 to 3 minutes per side.","Serve with lemon and harissa."]]},
+"liver": {
+ ar:["كبدة بالثوم و الكمون","كبدة سريعة مطيّبة بالثوم و الكمون.",["قطّع الكبدة شرائح و تبّلها بالثوم، الكمون، الملح و الهريسة.","سخّن زيت في مقلة كبيرة.","قلّي الكبدة 2 لـ 3 دقايق من كل جهة، و زيد الفلفل ولا البطاطا.","اعصر عليها ليمون و قدّمها بالخبز."]],
+ en:["Liver with garlic and cumin","Quick pan-fried liver with garlic and cumin.",["Slice the liver and season with garlic, cumin, salt and harissa.","Heat oil in a wide pan.","Fry the liver 2 to 3 minutes per side, adding peppers or potatoes.","Squeeze over lemon and serve with bread."]]}
+};
+
+var STORE = "thinkcook-selection", LSTORE = "thinkcook-lang";
+var sel = {}, openIds = {}, usedExample = false, lang = "ar";
+
+function save() { try { localStorage.setItem(STORE, JSON.stringify(Object.keys(sel))); } catch (e) {} }
+function load() {
+  try { var l = localStorage.getItem(LSTORE); if (l === "ar" || l === "en") lang = l; } catch (e) {}
+  try {
+    var raw = localStorage.getItem(STORE);
+    if (raw) { JSON.parse(raw).forEach(function (k) { sel[k] = true; }); return; }
+  } catch (e) {}
+  ["lamb", "peas", "potatoes", "eggs"].forEach(function (k) { sel[k] = true; });
+  usedExample = true;
+}
+function other() { return lang === "ar" ? "en" : "ar"; }
+function fmtTime(m) {
+  var h = Math.floor(m / 60), r = m % 60;
+  if (lang === "ar") return (h ? h + " س" : "") + (h && r ? " و " : "") + (r ? r + " د" : "");
+  return (h ? h + " h" : "") + (h && r ? " " : "") + (r ? r + " min" : "");
+}
+
+function applyLang() {
+  var u = UI[lang], sh = document.getElementById("shell");
+  sh.setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
+  sh.setAttribute("lang", lang === "ar" ? "ar-TN" : "en");
+  document.getElementById("lede").textContent = u.lede;
+  document.getElementById("fz").textContent = u.fz;
+  document.getElementById("surprise").textContent = u.surprise;
+  document.getElementById("clear").textContent = u.clear;
+  document.getElementById("lang").textContent = u.lang;
+  document.getElementById("example").textContent = u.example;
+  document.getElementById("foot").textContent = u.foot;
+}
+
+function renderGroups() {
+  var order = [], map = {};
+  ING.forEach(function (i) { if (!map[i.g]) { map[i.g] = []; order.push(i.g); } map[i.g].push(i); });
+  document.getElementById("groups").innerHTML = order.map(function (g) {
+    return '<div class="group"><h3>' + GROUPS[g][lang] + '</h3><div class="chips">' +
+      map[g].map(function (i) {
+        return '<button type="button" class="chip" data-id="' + i.id + '" aria-pressed="' + (!!sel[i.id]) + '">' + i[lang] + '</button>';
+      }).join("") + '</div></div>';
+  }).join("");
+}
+
+function evalDish(d) {
+  var have = d.any.filter(function (i) { return sel[i]; });
+  if (!have.length) return null;
+  var miss = d.all.filter(function (i) { return !sel[i]; });
+  var optHave = d.opt.filter(function (i) { return sel[i]; });
+  var optMiss = d.opt.filter(function (i) { return !sel[i]; });
+  return { d: d, have: have, miss: miss, optHave: optHave, optMiss: optMiss, score: have.length + optHave.length };
+}
+
+function tags(ids, cls, prefix) {
+  return ids.map(function (i) { return '<span class="tag ' + (cls || "") + '">' + (prefix || "") + LBL[i][lang] + '</span>'; }).join("");
+}
+
+function card(r) {
+  var d = r.d, u = UI[lang], t = TXT[d.id][lang], alt = TXT[d.id][other()][0];
+  var haveAll = r.have.concat(d.all.filter(function (i) { return sel[i]; })).concat(r.optHave);
+  var tg = tags(haveAll) + tags(r.miss, "miss", u.need);
+  if (r.optMiss.length) tg += '<span class="tag more">' + u.better + r.optMiss.map(function (i) { return LBL[i][lang]; }).join(u.sep) + '</span>';
+  var steps = t[2].map(function (s) { return "<li>" + s + "</li>"; }).join("");
+  return '<details class="dish" id="dish-' + d.id + '" data-id="' + d.id + '"' + (openIds[d.id] ? " open" : "") + '>' +
+    '<summary><div class="dish-top"><h3>' + t[0] + '</h3><span class="alt" lang="' + other() + '">' + alt + '</span></div>' +
+    '<p class="meta">' + t[1] + ' · ' + fmtTime(d.m) + '</p><div class="tags">' + tg + '</div></summary>' +
+    '<div class="body"><h4>' + u.method + '</h4><ol>' + steps + '</ol></div></details>';
+}
+
+function renderResults() {
+  var u = UI[lang], out = document.getElementById("out");
+  var n = Object.keys(sel).length;
+  document.getElementById("count").textContent = lang === "ar" ? (n + (n === 1 ? " حاجة" : " حوايج")) : (n + (n === 1 ? " item" : " items"));
+  var rs = DISHES.map(evalDish).filter(Boolean).sort(function (a, b) { return b.score - a.score || (a.d.id < b.d.id ? -1 : 1); });
+  var ready = rs.filter(function (r) { return !r.miss.length; });
+  var almost = rs.filter(function (r) { return r.miss.length; });
+  if (!rs.length) { out.innerHTML = '<div class="empty">' + (n ? u.empty : u.none) + '</div>'; return; }
+  var html = "";
+  if (ready.length) html += '<div class="tier"><h2>' + u.ready + '</h2><span class="pill ready">' + ready.length + '</span></div>' + ready.map(card).join("");
+  if (almost.length) html += '<div class="tier"><h2>' + u.almost + '</h2><span class="pill almost">' + almost.length + '</span></div>' + almost.map(card).join("");
+  out.innerHTML = html;
+}
+
+function update() { applyLang(); renderGroups(); renderResults(); document.getElementById("example").hidden = !usedExample; }
+
+document.getElementById("groups").addEventListener("click", function (e) {
+  var b = e.target.closest(".chip");
+  if (!b) return;
+  var id = b.getAttribute("data-id");
+  if (sel[id]) delete sel[id]; else sel[id] = true;
+  usedExample = false;
+  save();
+  b.setAttribute("aria-pressed", String(!!sel[id]));
+  document.getElementById("example").hidden = true;
+  renderResults();
+});
+document.getElementById("clear").addEventListener("click", function () { sel = {}; usedExample = false; save(); update(); });
+document.getElementById("lang").addEventListener("click", function () {
+  lang = other();
+  try { localStorage.setItem(LSTORE, lang); } catch (e) {}
+  update();
+});
+document.getElementById("surprise").addEventListener("click", function () {
+  var rs = DISHES.map(evalDish).filter(function (r) { return r && !r.miss.length; });
+  if (!rs.length) return;
+  var pick = rs[Math.floor(Math.random() * rs.length)].d.id;
+  openIds[pick] = true;
+  renderResults();
+  var el = document.getElementById("dish-" + pick);
+  if (el) { el.classList.add("flash"); el.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(function () { el.classList.remove("flash"); }, 1800); }
+});
+document.getElementById("out").addEventListener("toggle", function (e) {
+  var t = e.target; if (t && t.getAttribute) { var id = t.getAttribute("data-id"); if (id) openIds[id] = t.open; }
+}, true);
+
+load();
+update();
+</script>
+
+</body></html>
